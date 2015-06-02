@@ -1,0 +1,8 @@
+/build/
+/target/
+
+.settings/org.eclipse.jdt.core.prefs
+
+.settings/org.eclipse.wst.validation.prefs
+
+build/maven-archiver/pom.properties

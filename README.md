@@ -41,6 +41,22 @@ Then, *cd* into this app's root directory (directory with manifest.yml) and exec
 This will create the .war file within the 'target' directory. The pom.xml file 
 in the root directory is used by Maven to build the application.
 
+## Debugging the Application Locally
+
+Like all tomcat servlets, this application can be debugged in Eclipse. 
+Requirements: 
+
+- A valid MySQL instance, accessible via URI: mysql://{user}/{password}@{host}:{port}/{database name}
+- A Tomcat server configured in Eclipse: see https://www.mulesoft.com/tcat/tomcat-wtp
+
+
+You can 'Run As' or 'Debug As' a tomcat server from the 'Run' menu option, assuming you have eclipse WTP installed.
+When you run or debug from Tomcat:
+- Set the MYSQL_URL environment variable to the URI that contains the access information for the instance of MySQL you are using.
+- Also explicitly add the mysql-connector-java-5.1.21.jar that maven pulled down as dependency.
+  - Do this by adding the mysql-connector-java jar to the classpath of the tomcat servers Run/Debug configuration.
+  - This jar is located in your maven repository  at the relative path: .m2/repository/mysql/mysql-connector-java/5.1.21 
+
 ## Deploy the Application
 
 Execute the following commands:
