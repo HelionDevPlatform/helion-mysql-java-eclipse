@@ -30,9 +30,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import argo.jdom.JdomParser;
-import argo.jdom.JsonNode;
-import argo.jdom.JsonRootNode;
+import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -40,21 +38,140 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.DriverManager;
+import java.util.ArrayList;
+import java.util.List;
+
+import flexjson.JSONSerializer;
 
 public class MysqlServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
+    private Logger logger;
+    
+    private Logger getLogger() {
+    	
+    	if(logger == null) {
+    		logger = Logger.getLogger(this.getClass());
+    	}
+    	
+    	return logger;
+    	
+    }
+    
+    /**
+     *  invoked when user submits some text they want to store
+     */
+    protected void doPost(HttpServletRequest request,
+            HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/plain");
+	    response.setStatus(200);
+	    
+	    PrintWriter writer = response.getWriter();
+	    if(request.getServletPath().equals("/addContent")) {
+		    try { 
+		    	
+			    Connection dbConnection = getConnection();
+			    String contents = request.getParameter("contents");
+			    getLogger().debug("inserting "+contents+" into database");
+			    String insert = "insert into text_data(contents) values('"+contents+"')";
+			    Statement stmt = dbConnection.createStatement();
+			    stmt.execute(insert);
+			    response.sendRedirect(request.getContextPath());
+			    
+		    } catch(Exception ex) {
+		    	
+		    	getLogger().error(ex);
+		    	ex.printStackTrace();
+		    	
+		    	response.setStatus(500);
+		    }
+	    } else {
+	    	String errStr = "current post handler only handles /addContent, not "+request.getServletPath(); 
+	    	getLogger().error(errStr);
+	    	response.setStatus(404);
+	    }
+	    
+	    writer.close();
+	    
+	    
+    }
+            
+    /**
+     * basic GET handler, used to handle /allData requests only        
+     */
     protected void doGet(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("text/plain");
+        response.setContentType("text/json");
         response.setStatus(200);
         PrintWriter writer = response.getWriter();
-        writer.println("MySQL with Java \n");
-
-        Connection dbConnection = null;
         
-        writer.println("Connecting to MySQL using MYSQL environment variable...");
+
+        if(request.getServletPath().equals("/allData")) {
+	        try {
+		        Connection dbConnection = getConnection();
+		        getLogger().debug("about to retrieve current contents from database");
+		        List<TableContents> allContents  = getAllContents(dbConnection);
+		        
+		        JSONSerializer jsonSer = new JSONSerializer();
+		        String str = jsonSer.serialize(allContents);
+		        getLogger().debug("contents from db serialized to "+str);
+		        writer.write(str); 
+	        } catch(Exception ex) {
+	        	//TODO: log
+	        	response.setStatus(500);
+	        }
+        } else {
+        	String errStr = "current get handler only handles /allData, not "+request.getServletPath(); 
+        	getLogger().error(errStr);
+	    	response.setStatus(404);
+        	
+        }
+        writer.close();
+    }
+
+    /**
+     * pulls table contents into TableContents array
+     * @param dbConnection
+     * @return List<TableContents>
+     */
+	private List<TableContents> getAllContents(Connection dbConnection)  {
+		List<TableContents> allContents = new ArrayList<TableContents>();
+		try { 
+		    
+		    String getContents = "select text_id, contents from text_data";
+		    Statement stmt = dbConnection.createStatement();
+		    ResultSet rs = stmt.executeQuery(getContents);
+		    
+		    while(rs.next()) {
+		    	Integer id = rs.getInt("text_id");
+		    	String contents = rs.getString("contents");
+		    			
+		    	allContents.add(new TableContents(id,contents));
+		    }
+		    
+		    
+		    
+	    } catch(SQLException ex) {
+	    	
+	    	ex.printStackTrace();
+	    	// TODO: log
+	    	
+	    }
+		
+		return allContents;
+	}
+
+
+	/**
+	 * uses defined env var MYSQL_URL, serializes it as a URI
+	 * @return a Connection object
+	 * @throws Exception
+	 */
+	private Connection getConnection() throws Exception {
+		Connection dbConnection = null;
+        
+        
         String mysql_url = System.getenv("MYSQL_URL");
         
         
@@ -70,101 +187,21 @@ public class MysqlServlet extends HttpServlet {
         	    }
         	    
         	    String dbUrl = "jdbc:mysql://" + dbUri.getHost() + ':' + port + dbUri.getPath();
-        	    
+        	    getLogger().debug("connecting to database with "+dbUrl);
         	    // Connect to MySQL
 				
 				Class.forName("com.mysql.jdbc.Driver");
 				dbConnection = DriverManager.getConnection(dbUrl, user, password);
-				executeDbCheck(writer, dbConnection);
-				dbConnection.close();
         	}
         	catch (Exception e) {
-	            System.out.println("Caught error: ");
-	            e.printStackTrace();
+        		getLogger().error(e);
+	            throw(e);
         	}
         	
-        } else {
-        	writer.println("Unable to connect using MYSQL_URL environment variable. Please ensure that it has been set.");
-        }
+        } 
         
-        String vcap_services = System.getenv("VCAP_SERVICES");
-
-        
-        writer.println("Connecting to MySQL using mysql settings in VCAP_SERVICES environment variable...");
-
-        if (vcap_services != null && vcap_services.length() > 0) {
-            try {
-                // Use a JSON parser to get the info we need from  the
-                // VCAP_SERVICES environment variable. This variable contains
-                // credentials for all services bound to the application.
-                // In this case, MySQL is the only bound service.
-                JsonRootNode root = new JdomParser().parse(vcap_services);
-
-                JsonNode mysqlNode = root.getNode("mysql");
-                JsonNode credentials = mysqlNode.getNode(0).getNode("credentials");
-
-                // Grab login info for MySQL from the credentials node
-                String dbname = credentials.getStringValue("name");
-                String hostname = credentials.getStringValue("hostname");
-                String user = credentials.getStringValue("user");
-                String password = credentials.getStringValue("password");
-                String port = credentials.getNumberValue("port");
-
-                String dbUrl = "jdbc:mysql://" + hostname + ":" + port + "/" + dbname;
-
-                
-                Class.forName("com.mysql.jdbc.Driver");
-                dbConnection = DriverManager.getConnection(dbUrl, user, password);
-                executeDbCheck(writer,dbConnection);
-                dbConnection.close();
-            } catch (Exception e) {
-                System.out.println("Caught error: ");
-                e.printStackTrace();
-            }
-        } else {
-        	writer.println("Unable to connect to MySQL using VCAP_SERVICES environment variable. Please ensure that VCAP_SERVICES and mysql information is correctly configured as shown at http://docs.hpcloud.com/als/v1/user/services/data-services/#vcap-services-jumplink-span, it is required to connect to the MySQL database.");
-        }
-
-        
-        writer.close();
-    }
+        return(dbConnection);
+	}
     
-    /**
-     * simple database sanity check.
-     * @param writer
-     * @param dbConnection
-     * @throws SQLException 
-     */
-    public void executeDbCheck(PrintWriter writer, Connection dbConnection) throws SQLException { 
-	    if (dbConnection != null && !dbConnection.isClosed()) {
-            writer.println("Connected to MySQL!");
-
-            // creating a database table and populating some values
-            Statement statement = dbConnection.createStatement();
-
-            ResultSet rs = statement.executeQuery("SELECT \"Hello World!\"");
-            writer.println("Executed query \"SELECT \"Hello World!\"\".");
-
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int columnsNumber = rsmd.getColumnCount();
-
-            while (rs.next()) {
-                for (int i = 1; i <= columnsNumber; i++) {
-                    if (i > 1) System.out.print(",  ");
-                    String columnValue = rs.getString(i);
-
-                    // Since we are selecting a string literal, the column
-                    // value and column name are both the same. The values
-                    // could be retrieved with the line commented out below.
-                    //writer.println("Column value: " + columnValue + " column name " + rsmd.getColumnName(i));
-
-                    writer.println("Result: " + columnValue);
-                }
-            }
-
-            statement.close();
-        } else {
-            writer.println("Failed to connect to MySQL");
-        }
-    }
+   
 }
