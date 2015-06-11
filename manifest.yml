@@ -4,5 +4,8 @@ applications:
   mem: 512M
   path: build/mysql-java-1.0
   services:
-    ${name}-db:
+    helion_mysql_java_db:
       type: mysql
+  stackato:
+    hooks:
+        post-staging: python create_populate_db.py
