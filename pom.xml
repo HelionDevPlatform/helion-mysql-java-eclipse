@@ -28,7 +28,7 @@
               		<!-- the list has a default value of ** -->
               		<includes>
                 		<include>index.html</include>
-                		<include>create_populate_db.py</include>
+                		<include>create_db.py</include>
                 		<include>static/*</include>
               		</includes>
             	</resource>

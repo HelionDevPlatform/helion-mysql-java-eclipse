@@ -8,4 +8,4 @@ applications:
       type: mysql
   stackato:
     hooks:
-        post-staging: python create_populate_db.py
+        post-staging: python create_db.py

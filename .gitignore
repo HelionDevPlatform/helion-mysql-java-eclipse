@@ -8,3 +8,4 @@
 build/maven-archiver/pom.properties
 
 .project
+/build/
