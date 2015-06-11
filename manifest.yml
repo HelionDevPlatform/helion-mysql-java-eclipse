@@ -4,7 +4,7 @@ applications:
   mem: 512M
   path: build/mysql-java-1.0
   services:
-    helion_mysql_java_db:
+    ${name}-db:
       type: mysql
   stackato:
     hooks:

@@ -43,7 +43,7 @@ if __name__ == '__main__':
             log.warning("FQ_MYSQL not found, defaulting to mysql")
             mysqlPath = 'mysql'
             
-        createString = '%s  -h %s -D %s -u %s -p%s -e"use helion_mysql_java_db; CREATE TABLE IF NOT EXISTS text_data( text_id int not null auto_increment, contents char(100) not null,PRIMARY KEY(text_id));"'%(mysqlPath,url,dbName,userName,password)
+        createString = '%s  -h %s -D %s -u %s -p%s -e"use helion-mysql-java-db; CREATE TABLE IF NOT EXISTS text_data( text_id int not null auto_increment, contents char(100) not null,PRIMARY KEY(text_id));"'%(mysqlPath,url,dbName,userName,password)
         log.debug("about to run: %s "%createString)
         os.system(createString)
         
