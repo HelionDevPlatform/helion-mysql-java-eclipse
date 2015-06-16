@@ -181,7 +181,7 @@ public class MysqlServlet extends HttpServlet {
         
         if (mysql_url != null && mysql_url.length() > 0) {
         	try {
-        		URI dbUri = new URI(System.getenv("MYSQL_URL"));
+        		URI dbUri = new URI(mysql_url);
 
         	    String user = dbUri.getUserInfo().split(":")[0];
         	    String password = dbUri.getUserInfo().split(":")[1];
