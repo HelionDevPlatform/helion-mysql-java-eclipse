@@ -157,7 +157,6 @@ public class MysqlServlet extends HttpServlet {
 		    }
 		    
 		    
-		    dbConnection.close();
 	    } catch(SQLException ex) {
 	    	
 	    	ex.printStackTrace();
