@@ -8,7 +8,7 @@ import urlparse
 import os
 import logging
 
-
+# create simple table
 if __name__ == '__main__':
     
     try:
