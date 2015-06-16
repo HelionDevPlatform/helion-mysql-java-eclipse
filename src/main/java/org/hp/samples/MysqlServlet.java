@@ -32,6 +32,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import argo.jdom.JdomParser;
+import argo.jdom.JsonNode;
+import argo.jdom.JsonRootNode;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -198,7 +202,43 @@ public class MysqlServlet extends HttpServlet {
 	            throw(e);
         	}
         	
-        } 
+        } else {
+        
+        
+	        getLogger().debug("Connecting to MySQL using mysql settings in VCAP_SERVICES environment variable...");
+	        String vcap_services = System.getenv("VCAP_SERVICES");
+	        
+	        if (vcap_services != null && vcap_services.length() > 0) {
+	            try {
+	            	// Use a JSON parser to get the info we need from  the
+	                // VCAP_SERVICES environment variable. This variable contains
+	                // credentials for all services bound to the application.
+	                // In this case, MySQL is the only bound service.
+	                JsonRootNode root = new JdomParser().parse(vcap_services);
+	
+	                JsonNode mysqlNode = root.getNode("mysql");
+	                JsonNode credentials = mysqlNode.getNode(0).getNode("credentials");
+	
+	                // Grab login info for MySQL from the credentials node
+	                String dbname = credentials.getStringValue("name");
+	                String hostname = credentials.getStringValue("hostname");
+	                String user = credentials.getStringValue("user");
+	                String password = credentials.getStringValue("password");
+	                String port = credentials.getNumberValue("port");
+	
+	                String dbUrl = "jdbc:mysql://" + hostname + ":" + port + "/" + dbname;
+	
+	                
+	                Class.forName("com.mysql.jdbc.Driver");
+	                dbConnection = DriverManager.getConnection(dbUrl, user, password);
+	                
+	            
+	            } catch (Exception e) {
+	        		getLogger().error(e);
+		            throw(e);
+	        	}
+	        }
+        }
         
         return(dbConnection);
 	}
