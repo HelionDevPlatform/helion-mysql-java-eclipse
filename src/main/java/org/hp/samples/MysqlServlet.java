@@ -77,10 +77,11 @@ public class MysqlServlet extends HttpServlet {
 		    	
 			    Connection dbConnection = getConnection();
 			    String contents = request.getParameter("contents");
-			    getLogger().debug("inserting "+contents+" into database");
+			    getLogger().debug("beginning to insert  "+contents+" into database");
 			    String insert = "insert into text_data(contents) values('"+contents+"')";
 			    Statement stmt = dbConnection.createStatement();
 			    stmt.execute(insert);
+			    getLogger().debug("finished inserting "+contents+" into database");
 			    response.sendRedirect(request.getContextPath());
 			    
 		    } catch(Exception ex) {
@@ -169,7 +170,7 @@ public class MysqlServlet extends HttpServlet {
 
 
 	/**
-	 * uses defined env var MYSQL_URL, serializes it as a URI
+	 * uses defined env var VCAP_SERVICES, serializes it as a URI
 	 * @return a Connection object
 	 * @throws Exception
 	 */
