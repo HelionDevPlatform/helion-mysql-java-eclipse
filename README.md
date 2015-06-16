@@ -52,7 +52,8 @@ Requirements:
 
 You can 'Run As' or 'Debug As' a tomcat server from the 'Run' menu option, assuming you have eclipse WTP installed.
 When you run or debug from Tomcat:
-- Set the MYSQL_URL environment variable to the URI that contains the access information for the instance of MySQL you are using.
+- Set the VCAP_SERVICES environment variable to contain the mysql URI for the instance of MySQL you are using: see http://docs.hpcloud.com/als/v1/user/services/data-services/#vcap-services-jumplink-span for VCAP_SERVICES information.
+- Set the MYSQL_URL environment variable to contain the mysql URI for the instance of MySQL you are using.
 - Also explicitly add the mysql-connector-java-5.1.21.jar that maven pulled down as dependency.
   - Do this by adding the mysql-connector-java jar to the classpath of the tomcat servers Run/Debug configuration.
   - This jar is located in your maven repository  at the relative path: .m2/repository/mysql/mysql-connector-java/5.1.21 
