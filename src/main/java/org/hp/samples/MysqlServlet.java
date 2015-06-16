@@ -121,6 +121,7 @@ public class MysqlServlet extends HttpServlet {
 		        String str = jsonSer.serialize(allContents);
 		        getLogger().debug("contents from db serialized to "+str);
 		        writer.write(str); 
+		        dbConnection.close();
 	        } catch(Exception ex) {
 	        	//TODO: log
 	        	response.setStatus(500);
@@ -155,7 +156,7 @@ public class MysqlServlet extends HttpServlet {
 		    }
 		    
 		    
-		    
+		    dbConnection.close();
 	    } catch(SQLException ex) {
 	    	
 	    	ex.printStackTrace();
@@ -176,33 +177,33 @@ public class MysqlServlet extends HttpServlet {
 		Connection dbConnection = null;
         
         
-        String mysql_url = System.getenv("MYSQL_URL");
-        
-        
-        if (mysql_url != null && mysql_url.length() > 0) {
-        	try {
-        		URI dbUri = new URI(mysql_url);
-
-        	    String user = dbUri.getUserInfo().split(":")[0];
-        	    String password = dbUri.getUserInfo().split(":")[1];
-        	    int port = dbUri.getPort();
-        	    if( port == -1) {
-        	    	port = 3306;
-        	    }
-        	    
-        	    String dbUrl = "jdbc:mysql://" + dbUri.getHost() + ':' + port + dbUri.getPath();
-        	    getLogger().debug("connecting to database with "+dbUrl);
-        	    // Connect to MySQL
-				
-				Class.forName("com.mysql.jdbc.Driver");
-				dbConnection = DriverManager.getConnection(dbUrl, user, password);
-        	}
-        	catch (Exception e) {
-        		getLogger().error(e);
-	            throw(e);
-        	}
-        	
-        } else {
+//        String mysql_url = System.getenv("MYSQL_URL");
+//        
+//        
+//        if (mysql_url != null && mysql_url.length() > 0) {
+//        	try {
+//        		URI dbUri = new URI(mysql_url);
+//
+//        	    String user = dbUri.getUserInfo().split(":")[0];
+//        	    String password = dbUri.getUserInfo().split(":")[1];
+//        	    int port = dbUri.getPort();
+//        	    if( port == -1) {
+//        	    	port = 3306;
+//        	    }
+//        	    
+//        	    String dbUrl = "jdbc:mysql://" + dbUri.getHost() + ':' + port + dbUri.getPath();
+//        	    getLogger().debug("connecting to database with "+dbUrl);
+//        	    // Connect to MySQL
+//				
+//				Class.forName("com.mysql.jdbc.Driver");
+//				dbConnection = DriverManager.getConnection(dbUrl, user, password);
+//        	}
+//        	catch (Exception e) {
+//        		getLogger().error(e);
+//	            throw(e);
+//        	}
+//        	
+//        } else {
         
         
 	        getLogger().debug("Connecting to MySQL using mysql settings in VCAP_SERVICES environment variable...");
@@ -238,7 +239,7 @@ public class MysqlServlet extends HttpServlet {
 		            throw(e);
 	        	}
 	        }
-        }
+        //}
         
         return(dbConnection);
 	}
