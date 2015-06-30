@@ -182,7 +182,7 @@ public class MysqlServlet extends HttpServlet {
 		        
         if (mysql_url != null && mysql_url.length() > 0) {
         	try {
-        		getLogger().debug("Connecting to MySQL using mysql settings in MYSQL_URL environment variable %s..."+mysql_url);
+        		getLogger().debug("Connecting to MySQL using mysql settings in MYSQL_URL environment variable %s..."+ mysql_url);
         		URI dbUri = new URI(mysql_url);
 
         	    String user = dbUri.getUserInfo().split(":")[0];
