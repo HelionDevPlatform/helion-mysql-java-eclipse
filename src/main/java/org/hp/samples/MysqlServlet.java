@@ -73,9 +73,10 @@ public class MysqlServlet extends HttpServlet {
 	    
 	    PrintWriter writer = response.getWriter();
 	    if(request.getServletPath().equals("/addContent")) {
+	    	Connection dbConnection = null;
 		    try { 
 		    	
-			    Connection dbConnection = getConnection();
+		    	dbConnection = getConnection();
 			    String contents = request.getParameter("contents");
 			    getLogger().debug("beginning to insert  "+contents+" into database");
 			    String insert = "insert into text_data(contents) values('"+contents+"')";
@@ -87,9 +88,15 @@ public class MysqlServlet extends HttpServlet {
 		    } catch(Exception ex) {
 		    	
 		    	getLogger().error(ex);
-		    	ex.printStackTrace();
-		    	
 		    	response.setStatus(500);
+		    } finally {
+		    	try {
+		    		dbConnection.close();
+		    	} catch(Exception ex) {
+		    		getLogger().error(ex);
+			    	response.setStatus(500);
+		    	}
+		    	
 		    }
 	    } else {
 	    	String errStr = "current post handler only handles /addContent, not "+request.getServletPath(); 
@@ -113,8 +120,9 @@ public class MysqlServlet extends HttpServlet {
         
 
         if(request.getServletPath().equals("/allData")) {
+        	Connection dbConnection = null;
 	        try {
-		        Connection dbConnection = getConnection();
+		        dbConnection = getConnection();
 		        getLogger().debug("about to retrieve current contents from database");
 		        List<TableContents> allContents  = getAllContents(dbConnection);
 		        
@@ -122,10 +130,16 @@ public class MysqlServlet extends HttpServlet {
 		        String str = jsonSer.serialize(allContents);
 		        getLogger().debug("contents from db serialized to "+str);
 		        writer.write(str); 
-		        dbConnection.close();
 	        } catch(Exception ex) {
-	        	//TODO: log
+	        	getLogger().error(ex);
 	        	response.setStatus(500);
+	        } finally {
+	        	try {
+	        		dbConnection.close();
+	        	} catch(Exception ex) {
+	        		getLogger().error(ex);
+		        	response.setStatus(500);
+	        	}
 	        }
         } else {
         	String errStr = "current get handler only handles /allData, not "+request.getServletPath(); 
@@ -141,7 +155,7 @@ public class MysqlServlet extends HttpServlet {
      * @param dbConnection
      * @return List<TableContents>
      */
-	private List<TableContents> getAllContents(Connection dbConnection)  {
+	private List<TableContents> getAllContents(Connection dbConnection) throws SQLException {
 		List<TableContents> allContents = new ArrayList<TableContents>();
 		try { 
 		    
@@ -157,12 +171,13 @@ public class MysqlServlet extends HttpServlet {
 		    }
 		    
 		    
+		    
 	    } catch(SQLException ex) {
 	    	
-	    	ex.printStackTrace();
-	    	// TODO: log
+	    	getLogger().error(ex);
+	    	throw ex;
 	    	
-	    }
+	    } 
 		
 		return allContents;
 	}
