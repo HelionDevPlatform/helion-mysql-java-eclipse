@@ -26,24 +26,7 @@ $(document).ready(function() {
 		});
 	}
 	
-//	$('#submit_button').click(function(e) {
-//		var url = "/fib";
-//		
-//		$.ajax({
-//		  type: "POST",
-//		  url: url,
-//		  data: JSON.stringify({"number": $("#gen_fib").val()}),
-//		  contentType: "application/json",
-//          dataType: "json",
-//		  success: function(data){
-//		  	console.log(data);
-//		  	$("#result").html("<span>The number you sent was: "+$("#gen_fib").val()+ ". The returned value was: "+data.fib_value+"</span>");
-//		  	
-//		  }
-//		});
-//
-//		
-//	});
+
 	
 		
 	
