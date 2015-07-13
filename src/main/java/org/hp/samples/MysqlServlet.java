@@ -191,73 +191,40 @@ public class MysqlServlet extends HttpServlet {
 	private Connection getConnection() throws Exception {
 		Connection dbConnection = null;
         
-         
-		String mysql_url = System.getenv("MYSQL_URL");
-		        
-		        
-        if (mysql_url != null && mysql_url.length() > 0) {
-        	try {
-        		getLogger().debug("Connecting to MySQL using mysql settings in MYSQL_URL environment variable %s..."+ mysql_url);
-        		URI dbUri = new URI(mysql_url);
-
-        	    String user = dbUri.getUserInfo().split(":")[0];
-        	    String password = dbUri.getUserInfo().split(":")[1];
-        	    int port = dbUri.getPort();
-        	    if( port == -1) {
-        	    	port = 3306;
-        	    }
-        	    
-        	    String dbUrl = "jdbc:mysql://" + dbUri.getHost() + ':' + port + dbUri.getPath();
-        	    getLogger().debug("connecting to database with "+dbUrl);
-        	    // Connect to MySQL
-				
-				Class.forName("com.mysql.jdbc.Driver");
-				dbConnection = DriverManager.getConnection(dbUrl, user, password);
-        	}
-        	catch (Exception e) {
-        		getLogger().error(e);
-	            throw(e);
-        	}
-        	
-        } else {
-        	
-        
-	        getLogger().debug("Connecting to MySQL using mysql settings in VCAP_SERVICES environment variable...");
-	        String vcap_services = System.getenv("VCAP_SERVICES");
-	        
-	        if (vcap_services != null && vcap_services.length() > 0) {
-	            try {
-	            	// Use a JSON parser to get the info we need from  the
-	                // VCAP_SERVICES environment variable. This variable contains
-	                // credentials for all services bound to the application.
-	                // In this case, MySQL is the only bound service.
-	                JsonRootNode root = new JdomParser().parse(vcap_services);
+	    getLogger().debug("Connecting to MySQL using mysql settings in VCAP_SERVICES environment variable...");
+	    String vcap_services = System.getenv("VCAP_SERVICES");
+	    
+	    if (vcap_services != null && vcap_services.length() > 0) {
+	        try {
+	        	// Use a JSON parser to get the info we need from  the
+	            // VCAP_SERVICES environment variable. This variable contains
+	            // credentials for all services bound to the application.
+	            // In this case, MySQL is the only bound service.
+	            JsonRootNode root = new JdomParser().parse(vcap_services);
 	
-	                JsonNode mysqlNode = root.getNode("mysql");
-	                JsonNode credentials = mysqlNode.getNode(0).getNode("credentials");
+	            JsonNode mysqlNode = root.getNode("mysql");
+	            JsonNode credentials = mysqlNode.getNode(0).getNode("credentials");
 	
-	                // Grab login info for MySQL from the credentials node
-	                String dbname = credentials.getStringValue("name");
-	                String hostname = credentials.getStringValue("hostname");
-	                String user = credentials.getStringValue("user");
-	                String password = credentials.getStringValue("password");
-	                String port = credentials.getNumberValue("port");
+	            // Grab login info for MySQL from the credentials node
+	            String dbname = credentials.getStringValue("name");
+	            String hostname = credentials.getStringValue("hostname");
+	            String user = credentials.getStringValue("user");
+	            String password = credentials.getStringValue("password");
+	            String port = credentials.getNumberValue("port");
 	
-	                String dbUrl = "jdbc:mysql://" + hostname + ":" + port + "/" + dbname;
+	            String dbUrl = "jdbc:mysql://" + hostname + ":" + port + "/" + dbname;
 	
-	                
-	                Class.forName("com.mysql.jdbc.Driver");
-	                dbConnection = DriverManager.getConnection(dbUrl, user, password);
-	                
 	            
-	            } catch (Exception e) {
-	        		getLogger().error(e);
-		            throw(e);
-	        	}
-	        }
-        }
-        
-        
+	            Class.forName("com.mysql.jdbc.Driver");
+	            dbConnection = DriverManager.getConnection(dbUrl, user, password);
+	            
+	        
+	        } catch (Exception e) {
+	    		getLogger().error(e);
+	            throw(e);
+	    	}
+	    }
+
         return(dbConnection);
 	}
     
