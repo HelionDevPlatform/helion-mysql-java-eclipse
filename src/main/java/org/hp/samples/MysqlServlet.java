@@ -91,7 +91,9 @@ public class MysqlServlet extends HttpServlet {
 		    	response.setStatus(500);
 		    } finally {
 		    	try {
-		    		dbConnection.close();
+		    		if(dbConnection != null) {
+		    			dbConnection.close();
+		    		}
 		    	} catch(Exception ex) {
 		    		getLogger().error(ex);
 			    	response.setStatus(500);
@@ -135,7 +137,9 @@ public class MysqlServlet extends HttpServlet {
 	        	response.setStatus(500);
 	        } finally {
 	        	try {
-	        		dbConnection.close();
+	        		if(dbConnection != null) {
+		    			dbConnection.close();
+		    		}
 	        	} catch(Exception ex) {
 	        		getLogger().error(ex);
 		        	response.setStatus(500);
